@@ -7,6 +7,7 @@ if __name__ == "__main__":
 
 
 import numpy as np
+from scipy.signal import unit_impulse
 
 
 class gaussian_laser:
@@ -45,3 +46,13 @@ class sine_square_laser:
             * self.F_str
         )
         return pulse
+
+class delta_laser:
+    def __init__(self, F_str, tprime=0):
+        self.F_str = F_str
+
+    def __call__(self, t):
+        if t == self.tprime:
+            pulse = self.F_str
+        else:
+            pulse = 0
