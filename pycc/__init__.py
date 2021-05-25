@@ -14,6 +14,7 @@ from .cctriples import cctriples
 from .rtcc import rtcc
 from .lasers import gaussian_laser
 from .lasers import sine_square_laser
+from .lasers import delta_laser
 
 # Handle versioneer
 from ._version import get_versions

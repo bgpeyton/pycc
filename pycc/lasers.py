@@ -50,9 +50,11 @@ class sine_square_laser:
 class delta_laser:
     def __init__(self, F_str, tprime=0):
         self.F_str = F_str
+        self.tprime = tprime
 
     def __call__(self, t):
         if t == self.tprime:
             pulse = self.F_str
         else:
             pulse = 0
+        return pulse
