@@ -29,6 +29,17 @@ class gaussian_laser:
         )
         return self.F_str*pulse
 
+class gaussian_envelope:
+    """Bruner,Lamater,Lopata2016"""
+    def __init__(self, F_str, sigma, center=0.):
+        self.F_str = F_str
+        self.sigma2 = sigma**2
+        self.t0 = center
+
+    def __call__(self, t):
+        dt = t - self.t0
+        return self.F_str * np.exp(-dt**2/(2*self.sigma2))
+
 
 class sine_square_laser:
     def __init__(self, F_str, omega, tprime, phase=0):
