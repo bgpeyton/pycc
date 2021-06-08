@@ -15,6 +15,7 @@ from .rtcc import rtcc
 from .lasers import gaussian_laser
 from .lasers import sine_square_laser
 from .lasers import delta_laser
+from .lasers import gaussian_envelope
 
 # Handle versioneer
 from ._version import get_versions
