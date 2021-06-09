@@ -46,7 +46,7 @@ class rtcc(object):
     lagrangian()
         Compute the CC Lagrangian energy for a given time t
     """
-    def __init__(self, ccwfn, cclambda, ccdensity, V, magnetic = False):
+    def __init__(self, ccwfn, cclambda, ccdensity, V, magnetic = False, component = None):
         self.ccwfn = ccwfn
         self.cclambda = cclambda
         self.ccdensity = ccdensity
@@ -59,13 +59,24 @@ class rtcc(object):
         self.mu = []
         for axis in range(3):
             self.mu.append(C.T @ np.asarray(dipole_ints[axis]) @ C)
-        self.mu_tot = sum(self.mu)/np.sqrt(3.0)  # isotropic field
+
+        # handle single-component
+        if component:
+            carts = ['x','y','z']
+            try:
+                self.mu_tot = self.mu[carts.index(component.lower())]
+            except ValueError:
+                raise ValueError("Cartesian {} not recognized".format(component))
+        # handle isotropic
+        else:
+            self.mu_tot = sum(self.mu)/np.sqrt(3.0)  # isotropic field
 
         if magnetic:
             m_ints = mints.ao_angular_momentum()
             self.m = []
             for axis in range(3):
                 self.m.append(C.T @ (np.asarray(m_ints[axis])*-0.5) @ C)
+            ## NOTE: magnetic dipole perturbations not currently supported, hence no m_tot
 
     def f(self, t, y):
         """
