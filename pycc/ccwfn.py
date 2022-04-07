@@ -223,7 +223,7 @@ class ccwfn(object):
             if niter >= start_diis:
                 self.t1, self.t2 = diis.extrapolate(self.t1, self.t2)
 
-    def residuals(self, F, t1, t2):
+    def residuals(self, F, t1, t2, doubles=True):
         """
         Parameters
         ----------
@@ -248,14 +248,16 @@ class ccwfn(object):
         Fae = self.build_Fae(o, v, F, L, t1, t2)
         Fmi = self.build_Fmi(o, v, F, L, t1, t2)
         Fme = self.build_Fme(o, v, F, L, t1)
-        Wmnij = self.build_Wmnij(o, v, ERI, t1, t2)
-        Wmbej = self.build_Wmbej(o, v, ERI, L, t1, t2)
-        Wmbje = self.build_Wmbje(o, v, ERI, t1, t2)
-        Zmbij = self.build_Zmbij(o, v, ERI, t1, t2)
-
         r1 = self.r_T1(o, v, F, ERI, L, t1, t2, Fae, Fme, Fmi)
-        r2 = self.r_T2(o, v, F, ERI, L, t1, t2, Fae, Fme, Fmi, Wmnij, Wmbej, Wmbje, Zmbij)
 
+        if doubles:
+            Wmnij = self.build_Wmnij(o, v, ERI, t1, t2)
+            Wmbej = self.build_Wmbej(o, v, ERI, L, t1, t2)
+            Wmbje = self.build_Wmbje(o, v, ERI, t1, t2)
+            Zmbij = self.build_Zmbij(o, v, ERI, t1, t2)
+            r2 = self.r_T2(o, v, F, ERI, L, t1, t2, Fae, Fme, Fmi, Wmnij, Wmbej, Wmbje, Zmbij)
+        else:
+            r2 = t2
         return r1, r2
 
     def build_tau(self, t1, t2, fact1=1.0, fact2=1.0):

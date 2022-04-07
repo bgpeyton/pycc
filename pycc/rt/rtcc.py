@@ -83,7 +83,7 @@ class rtcc(object):
         else:
             self.magnetic = False
 
-    def f(self, t, y):
+    def f(self, t, y, doubles=True):
         """
         Parameters
         ----------
@@ -104,7 +104,7 @@ class rtcc(object):
         F = self.ccwfn.H.F.copy() + self.mu_tot * self.V(t)
 
         # Compute the current residuals
-        rt1, rt2 = self.ccwfn.residuals(F, t1, t2)
+        rt1, rt2 = self.ccwfn.residuals(F, t1, t2, doubles)
         rt1 = rt1 * (-1.0j)
         rt2 = rt2 * (-1.0j)
         if self.ccwfn.local is not None:
