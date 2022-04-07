@@ -54,11 +54,12 @@ class rtcc(object):
     lagrangian()
         Compute the CC Lagrangian energy for a given time t
     """
-    def __init__(self, ccwfn, cclambda, ccdensity, V, magnetic = False, kick = None):
+    def __init__(self, ccwfn, cclambda, ccdensity, V, magnetic = False, kick = None, doubles = True):
         self.ccwfn = ccwfn
         self.cclambda = cclambda
         self.ccdensity = ccdensity
         self.V = V
+        self.doubles = doubles
 
         # Prep the dipole integrals in MO basis
         mints = psi4.core.MintsHelper(ccwfn.ref.basisset())
@@ -83,7 +84,7 @@ class rtcc(object):
         else:
             self.magnetic = False
 
-    def f(self, t, y, doubles=True):
+    def f(self, t, y):
         """
         Parameters
         ----------
@@ -104,13 +105,13 @@ class rtcc(object):
         F = self.ccwfn.H.F.copy() + self.mu_tot * self.V(t)
 
         # Compute the current residuals
-        rt1, rt2 = self.ccwfn.residuals(F, t1, t2, doubles)
+        rt1, rt2 = self.ccwfn.residuals(F, t1, t2, self.doubles)
         rt1 = rt1 * (-1.0j)
         rt2 = rt2 * (-1.0j)
         if self.ccwfn.local is not None:
             rt1, rt2 = self.ccwfn.Local.filter_res(rt1, rt2)
 
-        rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2)
+        rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2, self.doubles)
         rl1 = rl1 * (+1.0j)
         rl2 = rl2 * (+1.0j)
         if self.ccwfn.local is not None:

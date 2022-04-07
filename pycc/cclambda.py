@@ -143,7 +143,7 @@ class cclambda(object):
             if niter >= start_diis:
                 self.l1, self.l2 = diis.extrapolate(self.l1, self.l2)
 
-    def residuals(self, F, t1, t2, l1, l2):
+    def residuals(self, F, t1, t2, l1, l2, doubles=True):
         """
         Parameters
         ----------
@@ -180,7 +180,10 @@ class cclambda(object):
         Goo = self.build_Goo(t2, l2)
         Gvv = self.build_Gvv(t2, l2)
         r1 = self.r_L1(o, v, l1, l2, Hov, Hvv, Hoo, Hovvo, Hovov, Hvvvo, Hovoo, Hvovv, Hooov, Gvv, Goo)
-        r2 = self.r_L2(o, v, l1, l2, L, Hov, Hvv, Hoo, Hoooo, Hvvvv, Hovvo, Hovov, Hvvvo, Hovoo, Hvovv, Hooov, Gvv, Goo)
+        if doubles:
+            r2 = self.r_L2(o, v, l1, l2, L, Hov, Hvv, Hoo, Hoooo, Hvvvv, Hovvo, Hovov, Hvvvo, Hovoo, Hvovv, Hooov, Gvv, Goo)
+        else:
+            r2 = l2
 
         return r1, r2
 
