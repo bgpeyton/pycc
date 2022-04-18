@@ -368,6 +368,7 @@ class Local(object):
         print("Number of canonical VMOs: %d" % (self.nv))
 
         self.Q = Q  # transform between canonical VMO and LPNO spaces
+        self.occ = occ  # occupation numbers
         self.dim = dim  # dimension of LPNO space
         self.eps = eps  # semicananonical LPNO energies
         self.L = L  # transform between LPNO and semicanonical LPNO spaces
