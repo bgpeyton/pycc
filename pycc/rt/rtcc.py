@@ -328,6 +328,10 @@ class rtcc(object):
         else:
             t1, l1 = self.extract_singles(y)
             t2, l2 = self.ccwfn.t2, self.cclambda.l2
+        ret['t1_norm'] = np.linalg.norm(t1)
+        ret['t2_norm'] = np.linalg.norm(t2)
+        ret['l1_norm'] = np.linalg.norm(l1)
+        ret['l2_norm'] = np.linalg.norm(l2)
         ret['ecc'] = self.lagrangian(t,t1,t2,l1,l2)
         mu_x, mu_y, mu_z = self.dipole(t1,t2,l1,l2,withref=ref,magnetic=False)
         ret['mu_x'] = mu_x
@@ -425,6 +429,10 @@ class rtcc(object):
 #            print("extracting singles amps")
             t1, l1 = self.extract_singles(yi)
             t2, l2 = self.ccwfn.t2, self.cclambda.l2
+        ret[key]['t1_norm'] = np.linalg.norm(t1)
+        ret[key]['t2_norm'] = np.linalg.norm(t2)
+        ret[key]['l1_norm'] = np.linalg.norm(l1)
+        ret[key]['l2_norm'] = np.linalg.norm(l2)
         ret[key]['ecc'] = self.lagrangian(ti,t1,t2,l1,l2)
         mu_x, mu_y, mu_z = self.dipole(t1,t2,l1,l2,withref=ref,magnetic=False)
         ret[key]['mu_x'] = mu_x
