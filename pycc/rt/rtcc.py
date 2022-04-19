@@ -99,12 +99,19 @@ class rtcc(object):
             flattened array of cluster residuals
         """
         # Extract amplitude tensors
-        t1, t2, l1, l2 = self.extract_amps(y)
+        if self.doubles:
+            t1, t2, l1, l2 = self.extract_amps(y)
+        else:
+            t1, l1 = self.extract_singles(y)
+            t2, l2 = self.ccwfn.t2, self.cclambda.l2
 
         # Add the field to the Hamiltonian
         F = self.ccwfn.H.F.copy() + self.mu_tot * self.V(t)
 
         # Compute the current residuals
+        # NOTE: rt2 will be trashed if doubles == False
+        # this means the local filter is a waste of effort,
+        # but it should be minimal
         rt1, rt2 = self.ccwfn.residuals(F, t1, t2, self.doubles)
         rt1 = rt1 * (-1.0j)
         rt2 = rt2 * (-1.0j)
@@ -118,7 +125,10 @@ class rtcc(object):
             rl1, rl2 = self.ccwfn.Local.filter_res(rl1, rl2)
 
         # Pack up the residuals
-        y = self.collect_amps(rt1, rt2, rl1, rl2)
+        if self.doubles:
+            y = self.collect_amps(rt1, rt2, rl1, rl2)
+        else:
+            y = self.collect_singles(rt1, rl1)
 
         return y
 
@@ -126,7 +136,7 @@ class rtcc(object):
         """
         Parameters
         ----------
-        t1, t2, l2, l2 : NumPy arrays
+        t1, t2, l1, l2 : NumPy arrays
             current cluster amplitudes or residuals
 
         Returns
@@ -135,6 +145,20 @@ class rtcc(object):
             amplitudes or residuals as a vector (flattened array)
         """
         return np.concatenate((t1, t2, l1, l2), axis=None)
+
+    def collect_singles(self, t1, l1):
+        """
+        Parameters
+        ----------
+        t1, l1 : NumPy arrays
+            current cluster amplitudes or residuals
+
+        Returns
+        -------
+        NumPy array
+            amplitudes or residuals as a vector (flattened array)
+        """
+        return np.concatenate((t1, l1), axis=None)
 
     def extract_amps(self, y):
         """
@@ -145,7 +169,7 @@ class rtcc(object):
 
         Returns
         -------
-        t1, t2, l2, l2 : NumPy arrays
+        t1, t2, l1, l2 : NumPy arrays
             current cluster amplitudes or residuals
         """
         no = self.ccwfn.no
@@ -160,6 +184,28 @@ class rtcc(object):
         l2 = np.reshape(y[(len1+len2+len1):], (no, no, nv, nv))
 
         return t1, t2, l1, l2
+
+    def extract_singles(self, y):
+        """
+        Parameters
+        ----------
+        y : NumPy array
+            flattened array of cluster amplitudes or residuals
+
+        Returns
+        -------
+        t1, l1 : NumPy arrays
+            current cluster amplitudes or residuals
+        """
+        no = self.ccwfn.no
+        nv = self.ccwfn.nv
+
+        # Extract the amplitudes
+        len1 = no*nv
+        t1 = np.reshape(y[:len1], (no, nv))
+        l1 = np.reshape(y[len1:], (no, nv))
+
+        return t1, l1 
 
     def dipole(self, t1, t2, l1, l2, withref = True, magnetic = False):
         """
@@ -277,7 +323,11 @@ class rtcc(object):
 
         # calculate properties
         ret = {}
-        t1, t2, l1, l2 = self.extract_amps(y)
+        if self.doubles:
+            t1, t2, l1, l2 = self.extract_amps(y)
+        else:
+            t1, l1 = self.extract_singles(y)
+            t2, l2 = self.ccwfn.t2, self.cclambda.l2
         ret['ecc'] = self.lagrangian(t,t1,t2,l1,l2)
         mu_x, mu_y, mu_z = self.dipole(t1,t2,l1,l2,withref=ref,magnetic=False)
         ret['mu_x'] = mu_x
@@ -353,7 +403,13 @@ class rtcc(object):
                     ret_t = pk.load(ampf)
             else:
                 ret_t = {key: None}
-            t1,t2,l1,l2 = self.extract_amps(yi)
+            if self.doubles:
+#                print("extracting doubles amps")
+                t1, t2, l1, l2 = self.extract_amps(yi)
+            else:
+#                print("extracting singles amps")
+                t1, l1 = self.extract_singles(yi)
+                t2, l2 = self.ccwfn.t2, self.cclambda.l2
             ret_t[key] = {"t1":t1,
                     "t2":t2,
                     "l1":l1,
@@ -362,7 +418,13 @@ class rtcc(object):
             save_t = False
 
         # initial properties
-        t1, t2, l1, l2 = self.extract_amps(yi)
+        if self.doubles:
+#            print("extracting doubles amps")
+            t1, t2, l1, l2 = self.extract_amps(yi)
+        else:
+#            print("extracting singles amps")
+            t1, l1 = self.extract_singles(yi)
+            t2, l2 = self.ccwfn.t2, self.cclambda.l2
         ret[key]['ecc'] = self.lagrangian(ti,t1,t2,l1,l2)
         mu_x, mu_y, mu_z = self.dipole(t1,t2,l1,l2,withref=ref,magnetic=False)
         ret[key]['mu_x'] = mu_x
@@ -395,7 +457,11 @@ class rtcc(object):
 
             # save amplitudes if asked and correct timestep
             if save_t and (point%tchk<0.0001):
-                t1,t2,l1,l2 = self.extract_amps(y)
+                if self.doubles:
+                    t1,t2,l1,l2 = self.extract_amps(y)
+                else:
+                    # don't re-pull t2/l2: should have been set above
+                    t1, l1 = self.extract_singles(y)
                 ret_t[key] = {"t1":t1,
                         "t2":t2,
                         "l1":l1,

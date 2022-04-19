@@ -179,10 +179,10 @@ class cclambda(object):
 
         Goo = self.build_Goo(t2, l2)
         Gvv = self.build_Gvv(t2, l2)
-        print("Doin' some l-singles!")
+#        print("Doin' some l-singles!")
         r1 = self.r_L1(o, v, l1, l2, Hov, Hvv, Hoo, Hovvo, Hovov, Hvvvo, Hovoo, Hvovv, Hooov, Gvv, Goo)
         if doubles:
-            print("Doin' some l-doubles!")
+#            print("Doin' some l-doubles!")
             r2 = self.r_L2(o, v, l1, l2, L, Hov, Hvv, Hoo, Hoooo, Hvvvv, Hovvo, Hovov, Hvvvo, Hovoo, Hvovv, Hooov, Gvv, Goo)
         else:
             r2 = l2
@@ -198,7 +198,7 @@ class cclambda(object):
 
 
     def r_L1(self, o, v, l1, l2, Hov, Hvv, Hoo, Hovvo, Hovov, Hvvvo, Hovoo, Hvovv, Hooov, Gvv, Goo):
-        print("Doin' r_L1!")
+#        print("Doin' r_L1!")
         if self.ccwfn.model == 'CCD':
             r_l1 = np.zeros_like(l1)
         else:
@@ -217,7 +217,7 @@ class cclambda(object):
 
 
     def r_L2(self, o, v, l1, l2, L, Hov, Hvv, Hoo, Hoooo, Hvvvv, Hovvo, Hovov, Hvvvo, Hovoo, Hvovv, Hooov, Gvv, Goo):
-        print("Doin' r_L2!")
+#        print("Doin' r_L2!")
         if self.ccwfn.model == 'CCD':
             r_l2 = L[o,o,v,v].copy()
             r_l2 = r_l2 + contract('ijeb,ea->ijab', l2, Hvv)

@@ -248,11 +248,11 @@ class ccwfn(object):
         Fae = self.build_Fae(o, v, F, L, t1, t2)
         Fmi = self.build_Fmi(o, v, F, L, t1, t2)
         Fme = self.build_Fme(o, v, F, L, t1)
-        print("Doin' some t-singles!")
+#        print("Doin' some t-singles!")
         r1 = self.r_T1(o, v, F, ERI, L, t1, t2, Fae, Fme, Fmi)
 
         if doubles:
-            print("Doin' some t-doubles!")
+#            print("Doin' some t-doubles!")
             Wmnij = self.build_Wmnij(o, v, ERI, t1, t2)
             Wmbej = self.build_Wmbej(o, v, ERI, L, t1, t2)
             Wmbje = self.build_Wmbje(o, v, ERI, t1, t2)
@@ -354,7 +354,7 @@ class ccwfn(object):
 
 
     def r_T1(self, o, v, F, ERI, L, t1, t2, Fae, Fme, Fmi):
-        print("Doin' r_T1!")
+#        print("Doin' r_T1!")
         if self.model == 'CCD':
             r_T1 = np.zeros_like(t1)
         else:
@@ -369,7 +369,7 @@ class ccwfn(object):
 
 
     def r_T2(self, o, v, F, ERI, L, t1, t2, Fae, Fme, Fmi, Wmnij, Wmbej, Wmbje, Zmbij):
-        print("Doin' r_T2!")
+#        print("Doin' r_T2!")
         if self.model == 'CCD':
             r_T2 = 0.5 * ERI[o,o,v,v].copy()
             r_T2 = r_T2 + contract('ijae,be->ijab', t2, Fae)
