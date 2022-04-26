@@ -54,12 +54,16 @@ class rtcc(object):
     lagrangian()
         Compute the CC Lagrangian energy for a given time t
     """
-    def __init__(self, ccwfn, cclambda, ccdensity, V, magnetic = False, kick = None, doubles = True):
+    def __init__(self, ccwfn, cclambda, ccdensity, V, magnetic = False, kick = None, doubles = "full"):
         self.ccwfn = ccwfn
         self.cclambda = cclambda
         self.ccdensity = ccdensity
         self.V = V
-        self.doubles = doubles
+        self.doubles = doubles.upper()
+        if self.doubles == "STATIC":
+            self.need_doubles = False
+        else:
+            self.need_doubles = True
 
         # Prep the dipole integrals in MO basis
         mints = psi4.core.MintsHelper(ccwfn.ref.basisset())
@@ -99,7 +103,7 @@ class rtcc(object):
             flattened array of cluster residuals
         """
         # Extract amplitude tensors
-        if self.doubles:
+        if self.need_doubles:
             t1, t2, l1, l2 = self.extract_amps(y)
         else:
             t1, l1 = self.extract_singles(y)
@@ -109,23 +113,30 @@ class rtcc(object):
         F = self.ccwfn.H.F.copy() + self.mu_tot * self.V(t)
 
         # Compute the current residuals
-        # NOTE: rt2 will be trashed if doubles == False
-        # this means the local filter is a waste of effort,
-        # but it should be minimal
-        rt1, rt2 = self.ccwfn.residuals(F, t1, t2, self.doubles)
+        if self.need_doubles:
+            # for semi-static, we need rt2, but it is just a copy of t2
+            if self.doubles == "SEMI-STATIC":
+                rt1, rt2 = self.ccwfn.residuals(F, t1, t2, doubles=False)
+            else:
+                rt1, rt2 = self.ccwfn.residuals(F, t1, t2)
         rt1 = rt1 * (-1.0j)
         rt2 = rt2 * (-1.0j)
         if self.ccwfn.local is not None:
             rt1, rt2 = self.ccwfn.Local.filter_res(rt1, rt2)
 
-        rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2, self.doubles)
+        if self.need_doubles:
+            # for semi-static, we need rl2, but it is just a copy of l2
+            if self.doubles == "SEMI-STATIC":
+                rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2, doubles=False)
+            else:
+                rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2)
         rl1 = rl1 * (+1.0j)
         rl2 = rl2 * (+1.0j)
         if self.ccwfn.local is not None:
             rl1, rl2 = self.ccwfn.Local.filter_res(rl1, rl2)
 
         # Pack up the residuals
-        if self.doubles:
+        if self.need_doubles:
             y = self.collect_amps(rt1, rt2, rl1, rl2)
         else:
             y = self.collect_singles(rt1, rl1)
@@ -323,7 +334,7 @@ class rtcc(object):
 
         # calculate properties
         ret = {}
-        if self.doubles:
+        if self.need_doubles:
             t1, t2, l1, l2 = self.extract_amps(y)
         else:
             t1, l1 = self.extract_singles(y)
@@ -407,11 +418,9 @@ class rtcc(object):
                     ret_t = pk.load(ampf)
             else:
                 ret_t = {key: None}
-            if self.doubles:
-#                print("extracting doubles amps")
+            if self.need_doubles:
                 t1, t2, l1, l2 = self.extract_amps(yi)
             else:
-#                print("extracting singles amps")
                 t1, l1 = self.extract_singles(yi)
                 t2, l2 = self.ccwfn.t2, self.cclambda.l2
             ret_t[key] = {"t1":t1,
@@ -422,11 +431,9 @@ class rtcc(object):
             save_t = False
 
         # initial properties
-        if self.doubles:
-#            print("extracting doubles amps")
+        if self.need_doubles:
             t1, t2, l1, l2 = self.extract_amps(yi)
         else:
-#            print("extracting singles amps")
             t1, l1 = self.extract_singles(yi)
             t2, l2 = self.ccwfn.t2, self.cclambda.l2
         ret[key]['t1_norm'] = np.linalg.norm(t1)
@@ -465,7 +472,7 @@ class rtcc(object):
 
             # save amplitudes if asked and correct timestep
             if save_t and (point%tchk<0.0001):
-                if self.doubles:
+                if self.need_doubles:
                     t1,t2,l1,l2 = self.extract_amps(y)
                 else:
                     # don't re-pull t2/l2: should have been set above
