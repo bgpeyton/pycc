@@ -113,23 +113,22 @@ class rtcc(object):
         F = self.ccwfn.H.F.copy() + self.mu_tot * self.V(t)
 
         # Compute the current residuals
-        if self.need_doubles:
-            # for semi-static, we need rt2, but it is just a copy of t2
-            if self.doubles == "SEMI-STATIC":
-                rt1, rt2 = self.ccwfn.residuals(F, t1, t2, doubles=False)
-            else:
-                rt1, rt2 = self.ccwfn.residuals(F, t1, t2)
+        if self.doubles in ["STATIC","SEMI-STATIC"]:
+            # skip doubles residual if static or semi-static
+            rt1, rt2 = self.ccwfn.residuals(F, t1, t2, doubles=False)
+        else:
+            rt1, rt2 = self.ccwfn.residuals(F, t1, t2)
+
         rt1 = rt1 * (-1.0j)
         rt2 = rt2 * (-1.0j)
         if self.ccwfn.local is not None:
             rt1, rt2 = self.ccwfn.Local.filter_res(rt1, rt2)
 
-        if self.need_doubles:
-            # for semi-static, we need rl2, but it is just a copy of l2
-            if self.doubles == "SEMI-STATIC":
-                rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2, doubles=False)
-            else:
-                rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2)
+        if self.doubles in ["STATIC","SEMI-STATIC"]:
+            # skip doubles residual if static or semi-static
+            rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2, doubles=False)
+        else:
+            rl1, rl2 = self.cclambda.residuals(F, t1, t2, l1, l2)
         rl1 = rl1 * (+1.0j)
         rl2 = rl2 * (+1.0j)
         if self.ccwfn.local is not None:
